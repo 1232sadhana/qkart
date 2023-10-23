@@ -3,7 +3,6 @@ import {
   act,
   render,
   screen,
-  waitForElementToBeRemoved,
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import axios from "axios";
@@ -69,7 +68,6 @@ describe("Products Page - Header", () => {
         <Products />
       </Router>
     </SnackbarProvider>
-    
   );
 
   beforeEach(async () => {
@@ -104,7 +102,6 @@ describe("Products Page - Header", () => {
 
     expect(history.location.pathname).toBe("/register");
   });
-
 });
 
 describe("Products Page - Header: Logged in", () => {
@@ -157,4 +154,3 @@ describe("Products Page - Header: Logged in", () => {
     expect(localStorage.getItem("balance")).toBeNull();
   });
 });
-
