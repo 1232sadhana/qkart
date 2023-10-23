@@ -6,11 +6,30 @@ import { Grid, InputAdornment, TextField } from "@mui/material";
 import { config } from "../App";
 import Header from "./Header";
 
+import "./Products.css";
 const Products = () => {
   const token = localStorage.getItem("token");
   const { enqueueSnackbar } = useSnackbar();
   const [filteredProducts, setFilteredProducts] = useState([]);
- 
+  const [debounceTimeout, setDebounceTimeout] = useState(null);
+
+  // Placeholder function for search, you should implement the actual search logic
+  const performSearch = (searchValue) => {
+    // Implement your search logic here
+    // Update the 'filteredProducts' state based on the search results
+  };
+
+  const debounceSearch = (event, debounceTimeout) => {
+    const value = event.target.value;
+    if (debounceTimeout) {
+      clearTimeout(debounceTimeout);
+    }
+    const timeout = setTimeout(() => {
+      performSearch(value);
+    }, 500);
+    setDebounceTimeout(timeout);
+  };
+
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -73,6 +92,7 @@ const Products = () => {
         className="search-desktop"
         size="small"
         InputProps={{
+          className: "search",
           endAdornment: (
             <InputAdornment position="end">
               <Search color="primary" />
@@ -81,6 +101,7 @@ const Products = () => {
         }}
         placeholder="Search for items/categories"
         name="search"
+        onChange={(e) => debounceSearch(e, debounceTimeout)}
       />
 
       <TextField
@@ -96,6 +117,7 @@ const Products = () => {
         }}
         placeholder="Search for items/categories"
         name="search"
+        onChange={(e) => debounceSearch(e, debounceTimeout)}
       />
 
       <Grid container>
