@@ -5,6 +5,9 @@ import { Grid } from "@mui/material";
 import { config } from "../App";
 import Header from "./Header";
 import "./Products.css";
+
+const logoUrl = "logo-url"; // Replace with the actual URL or path to your logo image
+
 const Products = () => {
   const token = localStorage.getItem("token");
   const { enqueueSnackbar } = useSnackbar();
@@ -30,7 +33,7 @@ const Products = () => {
   return (
     <div>
       <Header hasHiddenAuthButtons={!token}>
-        <img src="logo-url" alt="Logo" className="header-logo" />
+        <img src={logoUrl} alt="Logo" className="header-logo" />
       </Header>
 
       <Grid container>
@@ -49,4 +52,3 @@ const Products = () => {
 };
 
 export default Products;
-
