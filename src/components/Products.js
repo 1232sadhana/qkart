@@ -1,37 +1,57 @@
-import React, { useState } from "react";
+import React from "react";
 import Header from "./Header";
 
 const Products = () => {
-  const userToken = localStorage.getItem("token");
-  const [isLoggedIn, setIsLoggedIn] = useState(!!userToken);
-
-  const handleLogout = () => {
-    localStorage.clear();
-    setIsLoggedIn(false);
-  };
-
   return (
     <div>
       <Header>
-        <div className="header-logo">
-          {/* Add your logo component here */}
-        </div>
-        {isLoggedIn ? (
+        {/* Header with logo */}
+        <img src="logo-url" alt="Logo" className="header-logo" />
+
+        {localStorage.getItem("token") ? (
           <div>
-            <button onClick={handleLogout}>Logout</button>
-            <div>
-              {/* Add username and avatar here */}
-            </div>
+            {/* Logged in: Display username & avatar */}
+            <span className="header-username">Your Username</span>
+            <img src="avatar-url" alt="User Avatar" className="header-avatar" />
+
+            {/* Logged in: Logout button to clear localStorage */}
+            <button
+              className="header-logout-button"
+              onClick={() => {
+                localStorage.removeItem("token");
+                // Add code to navigate to the logout page if needed
+              }}
+            >
+              Logout
+            </button>
           </div>
         ) : (
           <div>
-            <button onClick={() => window.location.href = '/login'}>Login</button>
-            <button onClick={() => window.location.href = '/register'}>Register</button>
+            {/* When logged out: Login button to route to login page */}
+            <button
+              className="header-login-button"
+              onClick={() => {
+                // Add code to navigate to the login page if needed
+              }}
+            >
+              Login
+            </button>
+
+            {/* When logged out: Register button to route to register page */}
+            <button
+              className="header-register-button"
+              onClick={() => {
+                // Add code to navigate to the register page if needed
+              }}
+            >
+              Register
+            </button>
           </div>
         )}
       </Header>
 
-      {/* Rest of your Products page content */}
+      {/* Your product content */}
+      {/* ... */}
     </div>
   );
 };
