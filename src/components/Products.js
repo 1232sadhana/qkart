@@ -11,6 +11,13 @@ const Products = () => {
   const { enqueueSnackbar } = useSnackbar();
   const [filteredProducts, setFilteredProducts] = useState([]);
 
+  const clearLocalStorage = () => {
+    // Clear local storage items when logged in and clicking the logout button
+    localStorage.clear();
+    // Redirect to the home page or any other page you prefer
+    window.location.href = "/";
+  };
+
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -27,13 +34,6 @@ const Products = () => {
 
     fetchProducts();
   }, [enqueueSnackbar]);
-
-  const clearLocalStorage = () => {
-    // Clear local storage items here
-    localStorage.clear();
-    // Redirect to the home page or any other page you prefer
-    window.location.href = "/";
-  };
 
   return (
     <div>
