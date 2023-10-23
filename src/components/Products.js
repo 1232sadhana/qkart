@@ -1,34 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { useSnackbar } from "notistack";
 import axios from "axios";
-import { Search } from "@mui/icons-material";
-import { Grid, InputAdornment, TextField } from "@mui/material";
+import { Grid } from "@mui/material";
 import { config } from "../App";
 import Header from "./Header";
+import { Link } from "react-router-dom"; // You need to import Link from react-router-dom
 
-import "./Products.css";
 const Products = () => {
   const token = localStorage.getItem("token");
   const { enqueueSnackbar } = useSnackbar();
   const [filteredProducts, setFilteredProducts] = useState([]);
-  const [debounceTimeout, setDebounceTimeout] = useState(null);
-
-  // Placeholder function for search, you should implement the actual search logic
-  const performSearch = (searchValue) => {
-    // Implement your search logic here
-    // Update the 'filteredProducts' state based on the search results
-  };
-
-  const debounceSearch = (event, debounceTimeout) => {
-    const value = event.target.value;
-    if (debounceTimeout) {
-      clearTimeout(debounceTimeout);
-    }
-    const timeout = setTimeout(() => {
-      performSearch(value);
-    }, 500);
-    setDebounceTimeout(timeout);
-  };
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -48,8 +29,10 @@ const Products = () => {
   }, [enqueueSnackbar]);
 
   const clearLocalStorage = () => {
+    // Clear local storage items here
     localStorage.clear();
-    window.location.reload();
+    // Redirect to the home page or any other page you prefer
+    window.location.href = "/";
   };
 
   return (
@@ -59,66 +42,28 @@ const Products = () => {
 
         {token ? (
           <div>
+            {/* Display the user's username and avatar when logged in */}
             <span className="header-username">Your Username</span>
             <img src="avatar-url" alt="User Avatar" className="header-avatar" />
 
+            {/* Display a logout button when logged in */}
             <button className="header-logout-button" onClick={clearLocalStorage}>
               Logout
             </button>
           </div>
         ) : (
           <div>
-            <button
-              className="header-login-button"
-              onClick={() => {
-                // Implement your logic to route to the login page
-              }}
-            >
+            {/* Display a login button that routes to the login page when logged out */}
+            <Link to="/login" className="header-login-button">
               Login
-            </button>
-            <button
-              className="header-register-button"
-              onClick={() => {
-                // Implement your logic to route to the register page
-              }}
-            >
+            </Link>
+            {/* Display a register button that routes to the register page when logged out */}
+            <Link to="/register" className="header-register-button">
               Register
-            </button>
+            </Link>
           </div>
         )}
       </Header>
-
-      <TextField
-        className="search-desktop"
-        size="small"
-        InputProps={{
-          className: "search",
-          endAdornment: (
-            <InputAdornment position="end">
-              <Search color="primary" />
-            </InputAdornment>
-          ),
-        }}
-        placeholder="Search for items/categories"
-        name="search"
-        onChange={(e) => debounceSearch(e, debounceTimeout)}
-      />
-
-      <TextField
-        className="search-mobile"
-        size="small"
-        fullWidth
-        InputProps={{
-          endAdornment: (
-            <InputAdornment position="end">
-              <Search color="primary" />
-            </InputAdornment>
-          ),
-        }}
-        placeholder="Search for items/categories"
-        name="search"
-        onChange={(e) => debounceSearch(e, debounceTimeout)}
-      />
 
       <Grid container>
         {filteredProducts.length ? (
