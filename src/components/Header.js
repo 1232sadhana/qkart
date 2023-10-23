@@ -16,71 +16,67 @@ const Header = (props) => {
   }, [loginStatus]);
 
   const logout = () => {
-    localStorage.clear("username");
-    localStorage.clear("token");
-    localStorage.clear("balance");
-    history.push("/", {from:"Header"});
+    localStorage.removeItem("username");
+    localStorage.removeItem("token");
+    localStorage.removeItem("balance");
+    history.push("/", { from: "Header" });
     window.location.reload();
-  }
+  };
 
-    return (
-      <Box className="header">
-        <Box className="header-title">
-            <img src="logo_light.svg" alt="QKart-icon"></img>
-        </Box>
-        <Box>
-          {props.children}
-        </Box>
-        {props.hasHiddenAuthButtons ? (
-          <Button
+  return (
+    <Box className="header">
+      <Box className="header-title">
+        <img src="logo_light.svg" alt="QKart-icon" />
+      </Box>
+      <Box>{props.children}</Box>
+      {props.hasHiddenAuthButtons ? (
+        <Button
           className="explore-button"
           startIcon={<ArrowBackIcon />}
           variant="text"
-          onClick={() => history.push("/", {from: "Header"})}
+          onClick={() => history.push("/", { from: "Header" })}
         >
           Back to explore
         </Button>
-        ) : (loginStatus ? (
-          <Stack
+      ) : loginStatus ? (
+        <Stack
           direction="row"
           justifyContent="flex-end"
           alignItems="center"
           spacing={2}
         >
-          <Avatar src="../../public/avatar.png" alt={localStorage.getItem("username")} />
+          <Avatar
+            src="../../public/avatar.png"
+            alt={localStorage.getItem("username")}
+          />
           <p>{localStorage.getItem("username")}</p>
-          <Button 
-          variant="text"
-          onClick={logout}
-          >
+          <Button variant="text" onClick={logout}>
             LOGOUT
           </Button>
         </Stack>
-        ):(
-          <Stack
-            direction="row"
-            justifyContent="flex-end"
-            alignItems="center"
-            spacing={2}
-          >
-            <Button 
+      ) : (
+        <Stack
+          direction="row"
+          justifyContent="flex-end"
+          alignItems="center"
+          spacing={2}
+        >
+          <Button
             variant="text"
-            onClick={() => history.push("/login", {from:"Header"})}
-            >
-              LOGIN
-            </Button>
-
-            <Button 
+            onClick={() => history.push("/login", { from: "Header" })}
+          >
+            LOGIN
+          </Button>
+          <Button
             variant="contained"
-            onClick={() => history.push("/register", {from:"Header"})}
-            >
-              REGISTER
-            </Button>
-          </Stack>
-        ))}
-        
-      </Box>
-    );
+            onClick={() => history.push("/register", { from: "Header" })}
+          >
+            REGISTER
+          </Button>
+        </Stack>
+      )}
+    </Box>
+  );
 };
 
 export default Header;
