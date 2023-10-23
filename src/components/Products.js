@@ -4,7 +4,7 @@ import axios from "axios";
 import { Grid } from "@mui/material";
 import { config } from "../App";
 import Header from "./Header";
-
+import "./Products.css";
 const Products = () => {
   const token = localStorage.getItem("token");
   const { enqueueSnackbar } = useSnackbar();
@@ -27,45 +27,10 @@ const Products = () => {
     fetchProducts();
   }, [enqueueSnackbar]);
 
-  const clearLocalStorage = () => {
-    localStorage.clear();
-    window.location.reload();
-  };
-
   return (
     <div>
-      <Header>
+      <Header hasHiddenAuthButtons={!token}>
         <img src="logo-url" alt="Logo" className="header-logo" />
-
-        {token ? (
-          <div>
-            <span className="header-username">{localStorage.getItem("username")}</span>
-            <img src="avatar-url" alt="User Avatar" className="header-avatar" />
-
-            <button className="header-logout-button" onClick={clearLocalStorage}>
-              Logout
-            </button>
-          </div>
-        ) : (
-          <div>
-            <button
-              className="header-login-button"
-              onClick={() => {
-                // Implement your logic to route to the login page
-              }}
-            >
-              Login
-            </button>
-            <button
-              className="header-register-button"
-              onClick={() => {
-                // Implement your logic to route to the register page
-              }}
-            >
-              Register
-            </button>
-          </div>
-        )}
       </Header>
 
       <Grid container>
@@ -84,3 +49,4 @@ const Products = () => {
 };
 
 export default Products;
+
