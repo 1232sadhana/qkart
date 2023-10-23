@@ -2,6 +2,19 @@ import React from "react";
 import Header from "./Header";
 
 const Products = () => {
+  const handleLogin = () => {
+    // Implement the logic to navigate to the login page
+  };
+
+  const handleRegister = () => {
+    // Implement the logic to navigate to the register page
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    // Implement any other necessary logic, e.g., navigating to the logout page
+  };
+
   return (
     <div>
       <Header>
@@ -15,35 +28,19 @@ const Products = () => {
             <img src="avatar-url" alt="User Avatar" className="header-avatar" />
 
             {/* Logged in: Logout button to clear localStorage */}
-            <button
-              className="header-logout-button"
-              onClick={() => {
-                localStorage.removeItem("token");
-                // Add code to navigate to the logout page if needed
-              }}
-            >
+            <button className="header-logout-button" onClick={handleLogout}>
               Logout
             </button>
           </div>
         ) : (
           <div>
             {/* When logged out: Login button to route to login page */}
-            <button
-              className="header-login-button"
-              onClick={() => {
-                // Add code to navigate to the login page if needed
-              }}
-            >
+            <button className="header-login-button" onClick={handleLogin}>
               Login
             </button>
 
             {/* When logged out: Register button to route to register page */}
-            <button
-              className="header-register-button"
-              onClick={() => {
-                // Add code to navigate to the register page if needed
-              }}
-            >
+            <button className="header-register-button" onClick={handleRegister}>
               Register
             </button>
           </div>
@@ -57,3 +54,4 @@ const Products = () => {
 };
 
 export default Products;
+
