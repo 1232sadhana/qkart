@@ -10,19 +10,18 @@ const Header = (props) => {
   const history = useHistory();
 
   useEffect(() => {
-    // Check if the user is logged in based on the presence of the "token" in local storage
-    if (localStorage.getItem("token")) {
+    if (localStorage.getItem("username")) {
       setLoginStatus(true);
     }
-  }, []); // No need to include loginStatus in the dependency array
+  }, []);
 
   const logout = () => {
-    // Clear user-related data from local storage when logging out
     localStorage.removeItem("username");
     localStorage.removeItem("token");
     localStorage.removeItem("balance");
+    setLoginStatus(false); // Update the login status
     history.push("/", { from: "Header" });
-    // You don't need to manually reload the page
+    window.location.reload();
   };
 
   return (
@@ -47,7 +46,7 @@ const Header = (props) => {
           alignItems="center"
           spacing={2}
         >
-          <Avatar src="avatar.png" alt={localStorage.getItem("username")} />
+          <Avatar src="../../public/avatar.png" alt={localStorage.getItem("username")} />
           <p>{localStorage.getItem("username")}</p>
           <Button variant="text" onClick={logout}>
             LOGOUT
@@ -60,16 +59,10 @@ const Header = (props) => {
           alignItems="center"
           spacing={2}
         >
-          <Button
-            variant="text"
-            onClick={() => history.push("/login", { from: "Header" })}
-          >
+          <Button variant="text" onClick={() => history.push("/login", { from: "Header" })}>
             LOGIN
           </Button>
-          <Button
-            variant="contained"
-            onClick={() => history.push("/register", { from: "Header" })}
-          >
+          <Button variant="contained" onClick={() => history.push("/register", { from: "Header" })}>
             REGISTER
           </Button>
         </Stack>
