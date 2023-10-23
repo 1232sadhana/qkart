@@ -1,59 +1,86 @@
 import "@testing-library/jest-dom/extend-expect";
-import { act, render, screen } from "@testing-library/react";
+import {
+  act,
+  render,
+  screen,
+  waitForElementToBeRemoved,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import axios from "axios";
 import { createMemoryHistory } from "history";
 import { SnackbarProvider } from "notistack";
 import { Router } from "react-router-dom";
 import { config } from "../App";
-import Register from "../components/Register";
+import Products from "../components/Products";
 import MockAdapter from "axios-mock-adapter";
 
 const mock = new MockAdapter(axios);
 
-mock
-  .onPost(`${config.endpoint}/auth/register`, {
-    username: "crio.do",
-    password: "learnbydoing",
-  })
-  .reply(201, { success: true });
+const productsResponse = [
+  {
+    name: "Tan Leatherette Weekender Duffle",
+    category: "Fashion",
+    cost: 150,
+    rating: 4,
+    image:
+      "https://crio-directus-assets.s3.ap-south-1.amazonaws.com/ff071a1c-1099-48f9-9b03-f858ccc53832.png",
+    _id: "PmInA797xJhMIPti",
+  },
+  {
+    name: "The Minimalist Slim Leather Watch",
+    category: "Electronics",
+    cost: 60,
+    rating: 5,
+    image:
+      "https://crio-directus-assets.s3.ap-south-1.amazonaws.com/5b478a4a-bf81-467c-964c-1881887799b7.png",
+    _id: "TwMM4OAhmK0VQ93S",
+  },
+];
 
-mock
-  .onPost(`${config.endpoint}/auth/register`, {
-    username: "viveknigam3003",
-    password: "newpass",
-  })
-  .reply(400, { success: false, message: "Username is already taken" });
+const cartResponse = [
+  {
+    productId: "PmInA797xJhMIPti",
+    qty: 2,
+  },
+  {
+    productId: "TwMM4OAhmK0VQ93S",
+    qty: 1,
+  },
+];
 
-describe("Register Page", () => {
+mock.onGet(`${config.endpoint}/products`).reply(200, productsResponse);
+mock.onGet(`${config.endpoint}/cart`).reply(200, cartResponse);
+
+jest.useFakeTimers();
+
+describe("Products Page", () => {
   const history = createMemoryHistory();
 
-  beforeEach(() => {
-    mock.resetHistory();
+  const ProductDOMTree = (history) => (
+    <SnackbarProvider
+      maxSnack={1}
+      anchorOrigin={{
+        vertical: "bottom",
+        horizontal: "center",
+      }}
+      preventDuplicate
+    >
+      <Router history={history}>
+        <Products />
+      </Router>
+    </SnackbarProvider>
+  );
 
-    render(
-      <SnackbarProvider
-        maxSnack={1}
-        anchorOrigin={{
-          vertical: "bottom",
-          horizontal: "center",
-        }}
-        preventDuplicate
-      >
-        <Router history={history}>
-          <Register />
-        </Router>
-      </SnackbarProvider>
-    );
+  beforeEach(async () => {
+    // https://github.com/clarkbw/jest-localstorage-mock/issues/125
+    jest.clearAllMocks();
+
+    render(ProductDOMTree(history));
+
+    await waitForElementToBeRemoved(() => screen.queryByText(/loading/i));
   });
 
-  //Login Form Has Heading
-  it("should have a Register form title", () => {
-    const heading = screen.getByRole("heading", { name: "Register" });
-    expect(heading).toBeInTheDocument();
-  });
-
-  it("should have header with logo", () => {
+  it("should have a header has logo with Link", async () => {
     const images = screen.getAllByRole("img");
     const logo = images.find(
       (img) => img.getAttribute("src") === "logo_dark.svg"
@@ -61,209 +88,329 @@ describe("Register Page", () => {
     expect(logo).toBeInTheDocument();
   });
 
-  //Header has back to explore button
-  it("should have header with 'back to explore' button", () => {
-    const exploreButton = screen.getByRole("button", {
-      name: /back to explore/i,
-    });
-    expect(exploreButton).toBeInTheDocument();
-  });
-
-  it("should have 'login here' link", () => {
-    const loginHere = screen.getByRole("link", { name: /login/i });
-    expect(loginHere).toBeInTheDocument();
-  });
-
-  it("should show error message if username empty", async () => {
-    const [passwordInput] = screen.getAllByLabelText(/password/i);
-
-    userEvent.type(passwordInput, "learnbydoing");
-
-    expect(passwordInput).toHaveValue("learnbydoing");
-
-    userEvent.click(screen.getByRole("button", { name: /register/i }));
-
-    const alert = await screen.findByRole("alert");
-    expect(alert).toBeInTheDocument();
-    expect(alert).toHaveTextContent(/required/i);
-  });
-
-  it("should show error message if username < 6 characters", async () => {
-    const usernameInput = screen.getByLabelText(/username/i);
-    const [passwordInput, confirmPasswordInput] =
-      screen.getAllByLabelText(/password/i);
-
-    userEvent.type(usernameInput, "abcde");
-    userEvent.type(passwordInput, "learnbydoing");
-    userEvent.type(confirmPasswordInput, "learnbydoing");
-
-    expect(usernameInput).toHaveValue("abcde");
-
-    userEvent.click(screen.getByRole("button", { name: /register/i }));
-
-    const alert = await screen.findByRole("alert");
-    expect(alert).toBeInTheDocument();
-    expect(alert).toHaveTextContent(/6/i);
-  });
-
-  it("should show error message if password empty", async () => {
-    const usernameInput = screen.getByLabelText(/username/i);
-
-    userEvent.type(usernameInput, "crio.do");
-
-    expect(usernameInput).toHaveValue("crio.do");
-
-    userEvent.click(screen.getByRole("button", { name: /register/i }));
-
-    const alert = await screen.findByRole("alert");
-    expect(alert).toBeInTheDocument();
-    expect(alert).toHaveTextContent(/required/i);
-  });
-
-  it("should show error message if password < 6 chars long", async () => {
-    const usernameInput = screen.getByLabelText(/username/i);
-    const [passwordInput, confirmPasswordInput] =
-      screen.getAllByLabelText(/password/i);
-
-    userEvent.type(usernameInput, "crio.do");
-    userEvent.type(passwordInput, "lea");
-    userEvent.type(confirmPasswordInput, "lea");
-
-    userEvent.click(screen.getByRole("button", { name: /register/i }));
-
-    const alert = await screen.findByRole("alert");
-    expect(alert).toBeInTheDocument();
-    expect(alert).toHaveTextContent(/6/i);
-  });
-
-  it("should show error message if password and confirm password are not same", async () => {
-    const usernameInput = screen.getByLabelText(/username/i);
-    const [passwordInput, confirmPassword] =
-      screen.getAllByLabelText(/password/i);
-
-    userEvent.type(usernameInput, "crio.do");
-    userEvent.type(passwordInput, "Hello!Password");
-    userEvent.type(confirmPassword, "Password");
-
-    userEvent.click(screen.getByRole("button", { name: /register/i }));
-
-    const alert = await screen.findByRole("alert");
-    expect(alert).toBeInTheDocument();
-    expect(alert).toHaveTextContent(/do not match/i);
-  });
-
-  const performFormInput = (req) => {
-    const usernameInput = screen.getByLabelText(/username/i);
-    const [passwordInput, confirmPassword] =
-      screen.getAllByLabelText(/password/i);
-
-    userEvent.type(usernameInput, req.username);
-    userEvent.type(passwordInput, req.password);
-    userEvent.type(confirmPassword, req.password);
-
-    return { usernameInput, passwordInput, confirmPassword };
-  };
-
-  it("should send a POST request with axios", async () => {
-    const request = {
-      username: "crio.do",
-      password: "learnbydoing",
-    };
-
-    const { usernameInput, passwordInput, confirmPassword } =
-      performFormInput(request);
-    expect(usernameInput).toHaveValue(request.username);
-    expect(passwordInput).toHaveValue(request.password);
-    expect(confirmPassword).toHaveValue(request.password);
-
-    await act(async () => {
-      userEvent.click(screen.getByRole("button", { name: /register/i }));
-    });
-
-    const registerCall = mock.history.post.find(
-      (req) => req.url === `${config.endpoint}/auth/register`
-    );
-    expect(registerCall).toBeTruthy();
-  });
-
-  it("should send a POST request to server with correct arguments", async () => {
-    const request = {
-      username: "crio.do",
-      password: "learnbydoing",
-    };
-
-    const { usernameInput, passwordInput, confirmPassword } =
-      performFormInput(request);
-    expect(usernameInput).toHaveValue(request.username);
-    expect(passwordInput).toHaveValue(request.password);
-    expect(confirmPassword).toHaveValue(request.password);
-
-    await act(async () => {
-      userEvent.click(screen.getByRole("button", { name: /register/i }));
-    });
-
-    const registerCall = mock.history.post.find(
-      (req) => req.url === `${config.endpoint}/auth/register`
-    );
-
-    expect(registerCall.url).toEqual(`${config.endpoint}/auth/register`);
-    expect(JSON.parse(registerCall.data)).toEqual(
-      expect.objectContaining({
-        username: request.username,
-        password: request.password,
-      })
-    );
-  });
-
-  it("should show success alert if request succeeds", async () => {
-    const request = {
-      username: "crio.do",
-      password: "learnbydoing",
-    };
-
-    performFormInput(request);
-
-    await act(async () => {
-      userEvent.click(screen.getByRole("button", { name: /register/i }));
-    });
-
-    const alert = await screen.findByRole("alert");
-    expect(alert).toHaveTextContent(/success/i);
-  });
-
-  it("should show error alert with message sent from backend if request fails", async () => {
-    const request = {
-      username: "viveknigam3003",
-      password: "newpass",
-    };
-
-    performFormInput(request);
-
-    await act(async () => {
-      userEvent.click(screen.getByRole("button", { name: /register/i }));
-    });
-
-    const alert = await screen.findByRole("alert");
-    expect(alert).toHaveTextContent(/Username is already taken/i);
-  });
-
-  it("should redirect to login after success", async () => {
-    const request = {
-      username: "crio.do",
-      password: "learnbydoing",
-    };
-
-    performFormInput(request);
+  it("should have login button route to login page", async () => {
+    const loginBtn = screen.getByRole("button", { name: /login/i });
+    userEvent.click(loginBtn);
 
     expect(history.location.pathname).toBe("/login");
   });
 
-  it("'back to explore' button on Header should route to products", async () => {
-    const exploreButton = screen.getByRole("button", {
-      name: /back to explore/i,
-    });
-    userEvent.click(exploreButton);
+  it("should have register button route to register page", async () => {
+    const registerBtn = screen.getByRole("button", { name: /register/i });
+    userEvent.click(registerBtn);
 
-    expect(history.location.pathname).toBe("/");
+    expect(history.location.pathname).toBe("/register");
+  });
+
+  it("should have a search bar", () => {
+    const searchInput = screen.getAllByPlaceholderText(/search/i)[0];
+    expect(searchInput).toBeInTheDocument();
+  });
+
+  it("should make a GET request to load products", () => {
+    const getProductsCall = mock.history.get.find(
+      (req) => req.url === `${config.endpoint}/products`
+    );
+    expect(getProductsCall).toBeTruthy();
+  });
+
+  it("shows items on the products page load", async () => {
+    const addToCartBtn = screen.queryAllByRole("button", {
+      name: /add to cart/i,
+    });
+
+    const cardImages = screen
+      .queryAllByRole("img")
+      .map((image) => image.getAttribute("src"))
+      .filter((src) => src !== null)
+      .filter((src) => src.match(/https/i));
+
+    const stars = screen
+      .queryAllByRole("img")
+      .map((img) => img.getAttribute("aria-label"))
+      .filter((label) => label !== null)
+      .filter((label) => label.match(/stars/i));
+
+    expect(stars.length).toEqual(2);
+    expect(cardImages.length).toEqual(2);
+    expect(addToCartBtn.length).toEqual(2);
+  });
+
+  it("should make a GET request to search", async () => {
+    const searchResponse = [
+      {
+        name: "YONEX Smash Badminton Racquet",
+        category: "Sports",
+        cost: 100,
+        rating: 5,
+        image:
+          "https://crio-directus-assets.s3.ap-south-1.amazonaws.com/64b930f7-3c82-4a29-a433-dbc6f1493578.png",
+        _id: "KCRwjF7lN97HnEaY",
+      },
+    ];
+    mock
+      .onGet(`${config.endpoint}/products/search?value=smash`)
+      .reply(200, searchResponse);
+
+    const search = screen.getAllByPlaceholderText(/search/i)[0];
+
+    userEvent.type(search, "smash");
+
+    expect(search).toHaveValue("smash");
+
+    await act(async () => {
+      jest.runAllTimers();
+    });
+
+    const searchCall = mock.history.get.find(
+      (req) => req.url === `${config.endpoint}/products/search?value=smash`
+    );
+    expect(searchCall).toBeTruthy();
+    expect(searchCall.url).toEqual(
+      `${config.endpoint}/products/search?value=smash`
+    );
+  });
+
+  it("should show all products if search empty", async () => {
+    const search = screen.getAllByPlaceholderText(/search/i)[0];
+    mock.onGet(`${config.endpoint}/products/search?value=`).reply(404, []);
+
+    userEvent.type(search, "");
+
+    await act(async () => {
+      jest.runAllTimers();
+    });
+
+    const addToCartBtn = screen.queryAllByRole("button", {
+      name: /add to cart/i,
+    });
+    expect(addToCartBtn.length).toEqual(2);
+  });
+
+  it("should show matching products if found", async () => {
+    const searchResponse = [
+      {
+        name: "YONEX Smash Badminton Racquet",
+        category: "Sports",
+        cost: 100,
+        rating: 5,
+        image:
+          "https://crio-directus-assets.s3.ap-south-1.amazonaws.com/64b930f7-3c82-4a29-a433-dbc6f1493578.png",
+        _id: "KCRwjF7lN97HnEaY",
+      },
+    ];
+
+    mock
+      .onGet(`${config.endpoint}/products/search?value=smash`)
+      .reply(200, searchResponse);
+
+    const search = screen.getAllByPlaceholderText(/search/i)[0];
+
+    userEvent.type(search, "smash");
+
+    await act(async () => {
+      jest.runAllTimers();
+    });
+
+    const text = screen.getByText(/YONEX Smash Badminton Racquet/);
+    const addToCartBtn = screen.queryAllByRole("button", {
+      name: /add to cart/i,
+    });
+
+    expect(text).toBeInTheDocument();
+    expect(addToCartBtn.length).toEqual(1);
+  });
+
+  it("should 'No Products Found' if search string does get any items", async () => {
+    mock
+      .onGet(`${config.endpoint}/products/search?value=smasher`)
+      .reply(404, []);
+
+    // Matches by "placeholder" attribute value set for search input field - should have "search" in the placeholder
+    const search = screen.getAllByPlaceholderText(/search/i)[0];
+
+    userEvent.type(search, "smasher");
+
+    await act(async () => {
+      jest.runAllTimers();
+    });
+
+    const searchCall = mock.history.get.find(
+      (req) => req.url === `${config.endpoint}/products/search?value=smasher`
+    );
+    const text = await screen.findByText(/No products found/i);
+    const addToCartBtn = screen.queryAllByRole("button", {
+      name: /add to cart/i,
+    });
+
+    expect(searchCall).toBeTruthy();
+    expect(text).toBeInTheDocument();
+    expect(addToCartBtn.length).toEqual(0);
+  });
+
+  it("updates search items as search string updates", async () => {
+    const response1 = [
+      {
+        name: "Tan Leatherette Weekender Duffle",
+        category: "Fashion",
+        cost: 150,
+        rating: 4,
+        image:
+          "https://crio-directus-assets.s3.ap-south-1.amazonaws.com/ff071a1c-1099-48f9-9b03-f858ccc53832.png",
+        _id: "PmInA797xJhMIPti",
+      },
+      {
+        name: "The Minimalist Slim Leather Watch",
+        category: "Electronics",
+        cost: 60,
+        rating: 5,
+        image:
+          "https://crio-directus-assets.s3.ap-south-1.amazonaws.com/5b478a4a-bf81-467c-964c-1881887799b7.png",
+        _id: "TwMM4OAhmK0VQ93S",
+      },
+    ];
+
+    const response2 = [
+      {
+        name: "Tan Leatherette Weekender Duffle",
+        category: "Fashion",
+        cost: 150,
+        rating: 4,
+        image:
+          "https://crio-directus-assets.s3.ap-south-1.amazonaws.com/ff071a1c-1099-48f9-9b03-f858ccc53832.png",
+        _id: "PmInA797xJhMIPti",
+      },
+    ];
+
+    mock
+      .onGet(`${config.endpoint}/products/search?value=leather`)
+      .reply(200, response1);
+    mock
+      .onGet(`${config.endpoint}/products/search?value=leathere`)
+      .reply(200, response2);
+
+    const search = screen.getAllByPlaceholderText(/search/i)[0];
+
+    userEvent.type(search, "leather");
+
+    await act(async () => {
+      jest.runAllTimers();
+    });
+
+    expect(
+      screen.getAllByRole("button", {
+        name: /add to cart/i,
+      }).length
+    ).toEqual(2);
+
+    const item1 = screen.getByText(/Tan Leatherette Weekender Duffle/i);
+    const item2 = screen.getByText(/The Minimalist Slim Leather Watch/i);
+    expect(item1).toBeInTheDocument();
+    expect(item2).toBeInTheDocument();
+
+    userEvent.type(search, "e");
+    expect(search).toHaveValue("leathere");
+
+    await act(async () => {
+      jest.runAllTimers();
+    });
+
+    expect(item2).not.toBeInTheDocument();
+    expect(
+      screen.getAllByRole("button", {
+        name: /add to cart/i,
+      }).length
+    ).toEqual(1);
+  });
+
+  it("debounces the searching API calls", async () => {
+    const searchResponse = [
+      {
+        name: "YONEX Smash Badminton Racquet",
+        category: "Sports",
+        cost: 100,
+        rating: 5,
+        image:
+          "https://crio-directus-assets.s3.ap-south-1.amazonaws.com/64b930f7-3c82-4a29-a433-dbc6f1493578.png",
+        _id: "KCRwjF7lN97HnEaY",
+      },
+    ];
+
+    mock
+      .onGet(`${config.endpoint}/products/search?value=badminton`)
+      .reply(200, searchResponse);
+
+    const search = screen.getAllByPlaceholderText(/search/i)[0];
+
+    userEvent.type(search, "badminton");
+
+    await act(async () => {
+      jest.advanceTimersByTime(100);
+    });
+
+    const searchCall = mock.history.get.find(
+      (req) => req.url === `${config.endpoint}/products/search?value=badminton`
+    );
+    expect(searchCall).toBeFalsy();
+
+    await act(async () => {
+      jest.runAllTimers();
+    });
+
+    const searchCall2 = mock.history.get.find(
+      (req) => req.url === `${config.endpoint}/products/search?value=badminton`
+    );
+    expect(searchCall2).toBeTruthy();
+  });
+});
+
+describe("Products Page: Logged in", () => {
+  const history = createMemoryHistory();
+
+  const ProductDOMTree = (history) => (
+    <SnackbarProvider
+      maxSnack={1}
+      anchorOrigin={{
+        vertical: "bottom",
+        horizontal: "center",
+      }}
+      preventDuplicate
+    >
+      <Router history={history}>
+        <Products />
+      </Router>
+    </SnackbarProvider>
+  );
+
+  beforeEach(async () => {
+    jest.clearAllMocks();
+
+    localStorage.setItem("username", "crio.do");
+    localStorage.setItem("token", "testtoken");
+
+    render(ProductDOMTree(history));
+
+    await waitForElementToBeRemoved(() => screen.queryByText(/loading/i));
+  });
+
+  it("should have username & avatar in header", () => {
+    const avatar = screen.getByAltText(/crio.do/i);
+    const username = screen.getByText(/crio.do/i);
+    expect(avatar).toBeInTheDocument();
+    expect(username).toBeInTheDocument();
+  });
+
+  it("should have logout button in header", () => {
+    const logoutButton = screen.getByRole("button", { name: /logout/i });
+    expect(logoutButton).toBeInTheDocument();
+  });
+
+  it("logout button should clear localstorage items", async () => {
+    const logoutButton = screen.getByRole("button", { name: /logout/i });
+    userEvent.click(logoutButton);
+
+    expect(localStorage.getItem("username")).toBeNull();
+    expect(localStorage.getItem("token")).toBeNull();
+    expect(localStorage.getItem("balance")).toBeNull();
   });
 });
