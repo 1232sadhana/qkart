@@ -10,17 +10,19 @@ const Header = (props) => {
   const history = useHistory();
 
   useEffect(() => {
-    if (localStorage.getItem("username")) {
+    // Check if the user is logged in based on the presence of the "token" in local storage
+    if (localStorage.getItem("token")) {
       setLoginStatus(true);
     }
-  }, [loginStatus]);
+  }, []); // No need to include loginStatus in the dependency array
 
   const logout = () => {
+    // Clear user-related data from local storage when logging out
     localStorage.removeItem("username");
     localStorage.removeItem("token");
     localStorage.removeItem("balance");
     history.push("/", { from: "Header" });
-    window.location.reload();
+    // You don't need to manually reload the page
   };
 
   return (
@@ -45,10 +47,7 @@ const Header = (props) => {
           alignItems="center"
           spacing={2}
         >
-          <Avatar
-            src="../../public/avatar.png"
-            alt={localStorage.getItem("username")}
-          />
+          <Avatar src="avatar.png" alt={localStorage.getItem("username")} />
           <p>{localStorage.getItem("username")}</p>
           <Button variant="text" onClick={logout}>
             LOGOUT
