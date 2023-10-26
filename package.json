@@ -8,9 +8,9 @@
     "@mui/icons-material": "^5.0.5",
     "@mui/material": "^5.0.6",
     "@mui/system": "^5.1.0",
-    "@testing-library/jest-dom": "^5.14.1",
+    "@testing-library/jest-dom": "^5.14",
     "@testing-library/react": "^11.2.7",
-    "@testing-library/user-event": "^12.8.3",
+    "@testing-library/user-event": "^12",
     "axios": "^0.24.0",
     "history": "^5.1.0",
     "notistack": "^2.0.3",
@@ -21,11 +21,12 @@
     "web-vitals": "^1.1.2"
   },
   "peerDependencies": {
-    "react": "^17.0.2",
-    "react-dom": "^17.0.2"
+    "react": "^17.0.2"
   },
-  "jest": {
-    "resetMocks": false
+  "devDependencies": {
+    "axios-mock-adapter": "1.22.0",  
+    "jest-localstorage-mock": "^2.4.18",
+    "jest-location-mock": "^1.0.9"
   },
   "scripts": {
     "start": "PORT=8081 react-scripts start",
@@ -34,26 +35,10 @@
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
+    "extends": ["react-app", "react-app/jest"]
   },
   "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
-  },
-  "devDependencies": {
-    "axios-mock-adapter": "^1.20.0",
-    "jest-localstorage-mock": "^2.4.18",
-    "jest-location-mock": "^1.0.9"
+    "production": [">0.2%", "not dead", "not op_mini all"],
+    "development": ["last 1 chrome version", "last 1 firefox version", "last 1 safari version"]
   }
 }
