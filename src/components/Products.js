@@ -1,3 +1,4 @@
+// Products.js
 import React, { useState, useEffect } from "react";
 import { useSnackbar } from "notistack";
 import axios from "axios";
