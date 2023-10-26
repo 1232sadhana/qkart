@@ -1,4 +1,3 @@
-// Products.js
 import React, { useState, useEffect } from "react";
 import { useSnackbar } from "notistack";
 import axios from "axios";
@@ -7,7 +6,7 @@ import { config } from "../App";
 import Header from "./Header";
 import "./Products.css";
 
-const logoUrl = "logo-url"; // Replace with the actual URL or path to your logo image
+const logoUrl = "logo-light.svg"; // Replace with the actual URL or path to your logo image
 
 const Products = () => {
   const token = localStorage.getItem("token");
