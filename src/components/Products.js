@@ -13,8 +13,8 @@ import { config } from "../App";
 import Footer from "./Footer";
 import Header from "./Header";
 import "./Products.css";
-
-
+import ProductCard from "./ProductCard";
+import Cart, { generateCartItemsFrom } from "./Cart";
 // Definition of Data Structures used
 /**
  * @typedef {Object} Product - Data on product available to buy
@@ -27,13 +27,13 @@ import "./Products.css";
  * @property {string} _id - Unique ID for the product
  */
 const Products = () => {
-  
+  const token = localStorage.getItem("token");
   const { enqueueSnackbar } = useSnackbar();
   const [loading, setLoading] = useState(false);
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [debounceTimeout, setDebounceTimeout] = useState(null);
-  
+  const [items, setItems] = useState([]);
   // TODO: CRIO_TASK_MODULE_PRODUCTS - Fetch products data and store it
   /**
    * @typedef {Object} CartItem -  - Data on product added to cart
@@ -88,7 +88,7 @@ const Products = () => {
       const response = await axios.get(`${config.endpoint}/products`);
       setLoading(false);
       setFilteredProducts(response.data);
-     
+      fetchCart(localStorage.token);
       setProducts(response.data);
       console.log(response.data);
     } catch (e) {
@@ -189,6 +189,36 @@ const Products = () => {
    *      "message": "Protected route, Oauth2 Bearer token not found"
    * }
    */
+  const fetchCart = async (token) => {
+    if (!token) return;
+
+    try {
+      // TODO: CRIO_TASK_MODULE_CART - Pass Bearer token inside "Authorization" header to get data from "GET /cart" API and return the response data
+      const response = await axios.get(config.endpoint + "/cart", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      //  console.log("in fetch cart")
+      // console.log(response.data);
+      // setItems(response.data);
+      return response.data;
+    } catch (e) {
+      console.log("in fetch cart error");
+
+      if (e.response && e.response.status === 400) {
+        enqueueSnackbar(e.response.data.message, { variant: "error" });
+      } else {
+        enqueueSnackbar(
+          "Could not fetch cart details. Check that the backend is running, reachable and returns valid JSON.",
+          {
+            variant: "error",
+          }
+        );
+      }
+      return null;
+    }
+  };
   // TODO: CRIO_TASK_MODULE_CART - Return if a product already exists in the cart
   /**
    * Return if a product already is present in the cart
@@ -202,7 +232,9 @@ const Products = () => {
    *    Whether a product of given "productId" exists in the "items" array
    *
    */
-  
+  const isItemInCart = (items, productId) => {
+    return items.findIndex((item) => item.productId === productId) !== -1;
+  };
   /**
    * Perform the API call to add or update items in the user's cart and update local cart data to display the latest cart
    *
@@ -232,7 +264,52 @@ const Products = () => {
    *      "message": "Product doesn't exist"
    * }
    */
-  
+  const addToCart = async (
+    token,
+    items,
+
+    productId,
+    products,
+    qty,
+    options = { preventDuplicate: false }
+  ) => {
+    if (!token) {
+      enqueueSnackbar("Please login to add into the cart", {
+        variant: "warning",
+      });
+      return;
+    }
+
+    if (options.preventDuplicate && isItemInCart(items, productId)) {
+      enqueueSnackbar("item already in cart", { variant: "warning" });
+      return;
+    }
+    try {
+      // TODO: CRIO_TASK_MODULE_CART -  Pass Bearer token inside "Authorization" header to get data from "GET /cart" API and return the response data
+      const response = await axios.post(
+        `${config.endpoint}/cart`,
+        { productId, qty },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      const cartItems = generateCartItemsFrom(response.data, products);
+      setItems(cartItems);
+    } catch (e) {
+      if (e.response) {
+        enqueueSnackbar(e.response.data.message, { variant: "error" });
+      } else {
+        enqueueSnackbar(
+          "Could not fech prodcuts. Check that the backend is running, reachable and returns valid JSON",
+          { variant: "error" }
+        );
+      }
+    }
+
+    console.log("Added to cart", productId);
+  };
   const displayProducts = () => {
     return (
       <>
@@ -254,7 +331,14 @@ const Products = () => {
             {filteredProducts.length ? (
               filteredProducts.map((product) => (
                 <Grid item xs={6} md={3} key={product._id}>
-                  
+                  <ProductCard
+                    product={product}
+                    handleAddToCart={async () =>
+                      await addToCart(token, items, product._id, products, 1, {
+                        preventDuplicate: true,
+                      })
+                    }
+                  />
                 </Grid>
               ))
             ) : (
@@ -312,7 +396,11 @@ const Products = () => {
                 {displayProducts()}
               </Grid>
               <Grid item xs={12} md={3}>
-                
+                <Cart
+                  products={products}
+                  items={items}
+                  handleQuantity={addToCart}
+                />
               </Grid>
             </Grid>
           ) : (
