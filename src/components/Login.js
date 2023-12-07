@@ -1,4 +1,4 @@
-import { Button, CircularProgress, Stack, TextField } from "@mui/material";
+import { Button, Stack, TextField } from "@mui/material";
 import { Box } from "@mui/system";
 import axios from "axios";
 import { useSnackbar } from "notistack";
@@ -9,22 +9,13 @@ import Footer from "./Footer";
 import Header from "./Header";
 import "./Login.css";
 
-const initialData = {
-  username:"",
-  password:""
-}
+
 
 const Login = () => {
   const { enqueueSnackbar } = useSnackbar();
-  const [data, setFormData] = useState(initialData);
-  const [progressBar, setProgressBar] = useState(false);
-  const history = useHistory();
-  
-  const handleInput=(e)=>{
-    const [key,value]=[e.target.name,e.target.value];
-    setFormData((formData)=>({...formData,[key]:value}));
-    // console.log(formData);
-  }
+  const [username,updateUsername]=useState("");
+  const [password,udpatePassword]=useState("");
+  const history=useHistory();
 
   // TODO: CRIO_TASK_MODULE_LOGIN - Fetch the API response
   /**
@@ -53,69 +44,30 @@ const Login = () => {
    */
   const login = async (formData) => {
 
-    // if(validateInput(formData)){
-    //   setProgressBar(true);
-    //   axios.post(`${config.endpoint}/auth/login`,formData)
-    //   .then((response) => {
-    //     enqueueSnackbar("Logged in successfully", {variant:`success`});
-    //     setProgressBar(false);
-    //     persistLogin(response.data.token, response.data.username, response.data.balance);
-    //     history.push("/", {from:"Login"});
-    //   })
-    //   .catch((err) =>{
-    //     if(err.response){
-    //       // The request was made and the server responded with a status code
-    //         // that falls out of the range of 2xx
-    //         // console.log(err.response.data);
-    //         // console.log(err.response.status);
-    //         // console.log(err.response.headers);
-    //         enqueueSnackbar(err.response.data.message, {variant: `error`});
-    //         setProgressBar(false);
-    //     }
-    //     else if(err.request){
-    //       // The request was made but no response was received
-    //         // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
-    //         // http.ClientRequest in node.js
-    //         enqueueSnackbar("Something went wrong. Check that the backend is running, reachable and return valid JSON", {variant: `error`});
-    //         setProgressBar(false);
-    //     }
-    //     else{
-    //       console.log("Error! - ", err.message);
-    //       setProgressBar(false);
-    //     }
-    //   });  
-    // }
+  //  console.log(formData)
+    let url=config.endpoint;
+    try{
 
-    if(!validateInput(formData)) return;
-    setProgressBar(true);
-    try {
-      const response = await axios.post(
-        `${config.endpoint}/auth/login`,
-        formData
-      );
-      persistLogin(
-        response.data.token,
-        response.data.username,
-        response.data.balance
-      );
-      setFormData({
-        username: "",
-        password: "",
-      });
-      setProgressBar(false);
-      enqueueSnackbar("Logged in successfully", {variant: "success"});
-      history.push("/", {from : "Login"})
-    } catch (e) {
-      setProgressBar(false);
-      if (e.response && e.response.status === 400) {
-        return enqueueSnackbar(e.response.data.message, { variant: "error" });
-      } else {
-        enqueueSnackbar(
-          "Something went wrong. Check that the backend is running, reachable and returns valid JSON",
-          { variant: "error" }
-        );
+      let res= await axios.post(`${url}/auth/login`,formData);
+      if(res.data.success){
+        enqueueSnackbar("Logged in successfully",{ variant: 'success' });
+        let {token,username,balance}=res.data;
+        persistLogin(token,username,balance-0)
+      
       }
+    }catch(e){
+      axios.post(`${url}/auth/login`,formData).catch((e)=>{
+        if(e.response){
+          console.log(e.response)
+          enqueueSnackbar(e.response.data.message,{ variant: 'error' })
+        }
+        else {
+          // Something happened in setting up the request that triggered an Error
+          enqueueSnackbar("Something went wrong. Check that the backend is running, reachable and returns valid JSON.",{ variant: 'error' })
+        }
+      })
     }
+
 
   };
 
@@ -134,18 +86,24 @@ const Login = () => {
    * -    Check that username field is not an empty value - "Username is a required field"
    * -    Check that password field is not an empty value - "Password is a required field"
    */
-  const validateInput = (data) => {
 
-    if(!data.username){
-      enqueueSnackbar("Username is a required field", {variant : "warning"});
-      return false;
-    }
-    else if(!data.password){
-      enqueueSnackbar("Password is a required field", {variant : "warning"}); 
-      return false;
-    }
-    return true;
+  let datas={
+    "username":username,"password":password
+  }
+   const  evenHandler=()=>{
+    validateInput(datas) && login(datas)
+  }
 
+  const validateInput = ({username,password}) => {
+        if(username===""){
+          enqueueSnackbar("Username is a required field",{ variant: 'warning' });
+          return false;
+        }
+        if(password==="" || password.length<6){
+          enqueueSnackbar("Password is a required field",{ variant: 'warning' });
+          return false;
+        }
+        return true;
   };
 
   // TODO: CRIO_TASK_MODULE_LOGIN - Persist user's login information
@@ -164,10 +122,18 @@ const Login = () => {
    * -    `username` field in localStorage can be used to store the username that the user is logged in as
    * -    `balance` field in localStorage can be used to store the balance amount in the user's wallet
    */
+
+
+  
+
+
   const persistLogin = (token, username, balance) => {
-    localStorage.setItem("token", token);
-    localStorage.setItem("username", username);
-    localStorage.setItem("balance", balance);
+
+    localStorage.setItem("token",token);
+    localStorage.setItem('username',username);
+    localStorage.setItem('balance',balance);
+    history.push("/")
+
   };
 
   return (
@@ -180,37 +146,37 @@ const Login = () => {
       <Header hasHiddenAuthButtons={true} />
       <Box className="content">
         <Stack spacing={2} className="form">
-          <h2 className="title">Login</h2>
-          <TextField
-            id="username"
-            label="Username"
-            variant="outlined"
-            title="Username"
-            name="username"
-            placeholder="Enter Username"
-            fullWidth
-            value={data.username}
-            onChange={handleInput}
-          />
-        <TextField 
-            id="password"
-            label="Password"
-            type="password"
-            name="password"
-            title='password'
-            placeholder="Enter password"
-            fullWidth
-            value={data.password}
-            onChange={handleInput}
-          />
-          {progressBar? (<Box sx={{display:'flex', justifyContent:'center'}}> <CircularProgress disableShrink/></Box>):(<Button onClick={() => login(data)} className="button" variant="contained">
-            LOGIN TO QKART
-           </Button>)
-          }
-          <p className="secondary-action">
-            Don’t have an account? {" "}
-            <Link to="/register" className="link" >Register Now</Link>
+          <h2 className={"title"}>Login</h2>
+          <TextField 
+          id="username"
+           label="username" 
+           name="username"
+           value={username}
+           onChange={(e)=>updateUsername(e.target.value)}
+           type="text"
+           variant="outlined" 
+           fullWidth
+           />
+           <TextField 
+          id="password"
+           label="password" 
+           type="password"
+           name="password"
+           value={password}
+           onChange={(e)=>udpatePassword(e.target.value)}
+           variant="outlined"
+           fullWidth
+           />
+           <Button  
+           className="button" 
+           variant="contained"
+           onClick={evenHandler}
+           >LOGIN TO QKART</Button>
+           <p className="secondary-action">
+           Don’t have an account?{" "}
+            <Link to="/register" className={"link"}>Register now</Link>
           </p>
+           
         </Stack>
       </Box>
       <Footer />

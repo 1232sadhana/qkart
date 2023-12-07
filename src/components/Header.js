@@ -1,85 +1,54 @@
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { Avatar, Button, Stack } from "@mui/material";
+import {useHistory} from 'react-router-dom';
 import Box from "@mui/material/Box";
-import { useHistory } from "react-router-dom";
-import React, { useState, useEffect } from "react";
+import React from "react";
 import "./Header.css";
 
-const Header = (props) => {
-  const [loginStatus, setLoginStatus] = useState(false);
-  const history = useHistory();
+const Header = ({ children, hasHiddenAuthButtons }) => {
+  let history=useHistory();
+  
+  let userName=localStorage.getItem("username");
 
-  useEffect(() => {
-    if (localStorage.getItem("username")) {
-      setLoginStatus(true);
-    }
-  }, [loginStatus]);
 
-  const logout = () => {
-    localStorage.clear("username");
-    localStorage.clear("token");
-    localStorage.clear("balance");
-    history.push("/", {from:"Header"});
-    window.location.reload();
-  }
+const clear=()=>{
+  localStorage.clear();
+  window.location.reload();
+}
+
 
     return (
       <Box className="header">
-        <Box className="header-title">
+      <Box className="header-title">
             <img src="logo_light.svg" alt="QKart-icon"></img>
         </Box>
-        <Box>
-          {props.children}
-        </Box>
-        {props.hasHiddenAuthButtons ? (
-          <Button
+        {children}
+      {hasHiddenAuthButtons?(
+        <Button
           className="explore-button"
           startIcon={<ArrowBackIcon />}
           variant="text"
-          onClick={() => history.push("/", {from: "Header"})}
+          onClick={(e)=>{history.push("/")}}
         >
           Back to explore
         </Button>
-        ) : (loginStatus ? (
-          <Stack
-          direction="row"
-          justifyContent="flex-end"
-          alignItems="center"
-          spacing={2}
-        >
-          <Avatar src="../../public/avatar.png" alt={localStorage.getItem("username")} />
-          <p>{localStorage.getItem("username")}</p>
-          <Button 
-          variant="text"
-          onClick={logout}
-          >
-            LOGOUT
-          </Button>
-        </Stack>
+      ):(userName?(
+        <Stack direction="row" spacing={2} alignItems="center">
+          <Avatar alt={userName}  src="/public/avatar.png" />
+          <p> {userName}</p>
+          <Button  variant="contained"
+          onClick={clear}
+          >LOGOUT</Button></Stack>
         ):(
-          <Stack
-            direction="row"
-            justifyContent="flex-end"
-            alignItems="center"
-            spacing={2}
-          >
-            <Button 
-            variant="text"
-            onClick={() => history.push("/login", {from:"Header"})}
-            >
-              LOGIN
-            </Button>
-
-            <Button 
-            variant="contained"
-            onClick={() => history.push("/register", {from:"Header"})}
-            >
-              REGISTER
-            </Button>
-          </Stack>
-        ))}
-        
-      </Box>
+          <Stack direction="row" spacing={2}>
+            <Button  variant="contained"
+              onClick={(e)=>{history.push("/login")}}
+            >LOGIN</Button>
+          <Button  variant="contained" onClick={(e)=>{history.push("/register")}}>REGISTER</Button>
+          </Stack>)
+          )}
+     </Box>
+     
     );
 };
 
