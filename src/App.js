@@ -2,13 +2,12 @@ import Register from "./components/Register";
 import Product from "./components/Products";
 import Login from "./components/Login";
 import Checkout from "./components/Checkout";
-
+import Thanks from './components/Thanks'
 import {Switch,Route} from "react-router-dom";
-
+import ipConfig from "./ipConfig.json";
 export const config = {
-  endpoint: `https://qkart-frontend-10h6.onrender.com/api/v1`,
+  endpoint: `http://${ipConfig.workspaceIp}:8082/api/v1`,
 };
-
 function App() {
   return (
     <div className="App">
@@ -23,7 +22,9 @@ function App() {
             <Route  path="/checkout">
              <Checkout /> 
             </Route>
-            
+            <Route  path="/Thanks">
+             <Thanks /> 
+            </Route>
             <Route  path="/">
              <Product /> 
             </Route>
