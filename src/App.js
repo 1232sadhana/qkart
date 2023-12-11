@@ -4,9 +4,9 @@ import Login from "./components/Login";
 import Checkout from "./components/Checkout";
 import Thanks from './components/Thanks'
 import {Switch,Route} from "react-router-dom";
-import ipConfig from "./ipConfig.json";
+
 export const config = {
-  endpoint: `http://${ipConfig.workspaceIp}:8082/api/v1`,
+  endpoint: `https://qkart-frontend-ve7y.onrender.com`,
 };
 function App() {
   return (
